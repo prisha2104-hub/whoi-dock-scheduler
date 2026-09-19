@@ -3,6 +3,7 @@ import { useData } from '../../data/store'
 import type { Reservation } from '../../data/types'
 import {
   berthById,
+  isAmbiguousOccupancy,
   reservationDays,
   reservationTitle,
   reservationsForBerth,
@@ -48,6 +49,7 @@ function shortName(name: string): string {
 }
 
 function barMeta(r: Reservation): string | null {
+  if (isAmbiguousOccupancy(r)) return 'occupant unknown'
   if (r.type === 'event') return 'Event'
   const v = vesselById(r.vesselId)
   if (!v) return null
@@ -130,6 +132,11 @@ export function Timeline({ startISO, days, view }: TimelineProps) {
           {berth?.name}
           {meta ? ` · ${meta}` : ''}
         </div>
+        {isAmbiguousOccupancy(r) && (
+          <div className="mt-1 max-w-[220px] text-[10.5px] leading-snug opacity-70">
+            Occupant not identified in source workbook.
+          </div>
+        )}
       </div>,
     )
   }
@@ -175,12 +182,16 @@ export function Timeline({ startISO, days, view }: TimelineProps) {
                 style={{ width: LABEL_W }}
                 data-selected={selectedBerth === b.id}
                 onClick={() => setSel(selToken.berth(b.id))}
-                aria-label={`${b.name}, maximum vessel length ${b.maxLengthFt} feet${
-                  matchStatus ? `, ${matchStatus.replace('-', ' ')} for the current request` : ''
-                }`}
+                aria-label={`${b.name}, ${
+                  b.maxLengthFt == null
+                    ? 'no rated maximum length'
+                    : `maximum vessel length ${b.maxLengthFt} feet`
+                }${matchStatus ? `, ${matchStatus.replace('-', ' ')} for the current request` : ''}`}
               >
                 <span className="b-name">{b.name}</span>
-                <span className="b-cap">{b.maxLengthFt} ft max</span>
+                <span className="b-cap">
+                  {b.maxLengthFt == null ? 'no rated length' : `${b.maxLengthFt} ft max`}
+                </span>
                 {matchStatus && (
                   <span className={`match-tag t-${matchStatus}`}>
                     {matchStatus === 'too-short' ? 'Too short' : matchStatus}
@@ -218,7 +229,11 @@ export function Timeline({ startISO, days, view }: TimelineProps) {
                   const span = endIdx - startIdx + 1
                   const barPx = span * dayW - 4
                   const title = reservationTitle(r)
-                  const label = barPx < 72 ? shortName(title) : title
+                  const label = isAmbiguousOccupancy(r)
+                    ? 'Unidentified'
+                    : barPx < 72
+                      ? shortName(title)
+                      : title
                   const meta = barMeta(r)
                   const showMeta = barPx >= 92 && meta != null
                   const d = reservationDays(r)
@@ -226,7 +241,13 @@ export function Timeline({ startISO, days, view }: TimelineProps) {
                   return (
                     <button
                       key={r.id}
-                      className={`tl-bar ${r.type === 'vessel' ? 'is-vessel' : 'is-event'}`}
+                      className={`tl-bar ${
+                        isAmbiguousOccupancy(r)
+                          ? 'is-unknown'
+                          : r.type === 'vessel'
+                            ? 'is-vessel'
+                            : 'is-event'
+                      }`}
                       data-selected={selectedReservation === r.id}
                       style={{
                         left: startIdx * dayW + 2,
@@ -245,7 +266,13 @@ export function Timeline({ startISO, days, view }: TimelineProps) {
                       onMouseLeave={tooltip.hide}
                       onFocus={(e) => showTip(e as unknown as React.MouseEvent<HTMLElement>, r)}
                       onBlur={tooltip.hide}
-                      aria-label={`${title}, ${b.name}, ${fmtRange(r.startDate, r.endDate, { year: true })}, ${d} day${d === 1 ? '' : 's'}, ${r.type === 'vessel' ? 'vessel reservation' : 'event'}`}
+                      aria-label={`${title}, ${b.name}, ${fmtRange(r.startDate, r.endDate, { year: true })}, ${d} day${d === 1 ? '' : 's'}, ${
+                        isAmbiguousOccupancy(r)
+                          ? 'occupancy recorded in the source workbook without an occupant'
+                          : r.type === 'vessel'
+                            ? 'vessel reservation'
+                            : 'event'
+                      }`}
                     >
                       {clipL && (
                         <span className="bar-clip l" aria-hidden>

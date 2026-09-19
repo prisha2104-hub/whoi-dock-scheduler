@@ -1,14 +1,16 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { PageHeader } from '../components/shell/PageHeader'
 import { Timeline } from '../components/timeline/Timeline'
 import { Button, IconButton, Segmented } from '../components/ui'
 import { opsSummary } from '../data/queries'
 import { useData } from '../data/store'
+import { SOURCE_META, quarantineNotesFor } from '../data/source'
 import {
   addDays,
   addMonths,
   daysInMonth,
+  fmtDayYear,
   fmtRange,
   monthLong,
   startOfMonth,
@@ -23,7 +25,12 @@ export function SchedulePage() {
   useData() // subscribe: ops summary and berth count react to created reservations
   const today = todayISO()
   const [view, setView] = useState<View>('month')
-  const [anchor, setAnchor] = useState(today)
+  /**
+   * Open on the last month the imported workbook actually covers, so the
+   * schedule shows the supplied dataset rather than an empty present-day
+   * month. "Today" still jumps to the real current date.
+   */
+  const [anchor, setAnchor] = useState(SOURCE_META.latestMonth)
 
   const startISO = view === 'month' ? startOfMonth(anchor) : startOfWeek(anchor)
   const days = view === 'month' ? daysInMonth(anchor) : 7
@@ -38,15 +45,27 @@ export function SchedulePage() {
 
   const ops = opsSummary(today)
 
+  /**
+   * Months whose source blocks could not be placed in time. Their bookings are
+   * absent, so the grid must not be read as "these berths were free".
+   */
+  const coverageGaps = useMemo(() => {
+    const months = new Set<string>()
+    for (let i = 0; i < days; i++) months.add(addDays(startISO, i).slice(0, 7))
+    return [...months].flatMap((m) => quarantineNotesFor(m).map((q) => ({ month: m, note: q })))
+  }, [startISO, days])
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageHeader
         title="Waterfront Schedule"
-        context="6 berths · continuous day view · click a bar or berth for details"
+        context={`Source schedule · ${SOURCE_META.yearRange} · click a bar or berth for details`}
         secondRow={
           <>
             <div className="flex items-center gap-3 font-mono text-[11px] text-slate">
-              <span className="microlabel">Today</span>
+              <span className="microlabel" title="Live status for the current date, not the month shown">
+                {fmtDayYear(today)}
+              </span>
               <span className="flex items-center gap-1.5">
                 <span className="h-[6px] w-[6px] rounded-full bg-accent" aria-hidden />
                 {ops.occupied} occupied
@@ -91,8 +110,26 @@ export function SchedulePage() {
         }
       />
 
-      <div className="min-h-0 flex-1 px-6 py-4">
-        <Timeline startISO={startISO} days={days} view={view} />
+      <div className="flex min-h-0 flex-1 flex-col px-6 py-4">
+        {coverageGaps.length > 0 && (
+          <div
+            role="status"
+            className="mb-3 border-l-2 border-ochre bg-event-bg/40 px-3 py-2 text-[12.5px] leading-snug text-slate"
+          >
+            <span className="font-medium text-ink">Incomplete source coverage.</span>{' '}
+            Source data for this period is ambiguous and was not imported, so this grid does
+            not show what occupied these berths. An empty row here does not mean the berth
+            was available.
+            <span className="mt-1 block font-mono text-[10.5px] text-faint">
+              {coverageGaps
+                .map((g) => `${g.note.sheet} sheet · block labelled ${g.note.labelledPeriod}`)
+                .join(' · ')}
+            </span>
+          </div>
+        )}
+        <div className="min-h-0 flex-1">
+          <Timeline startISO={startISO} days={days} view={view} />
+        </div>
       </div>
     </div>
   )

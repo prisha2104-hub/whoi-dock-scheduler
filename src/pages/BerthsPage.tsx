@@ -3,7 +3,7 @@ import { Chip } from '../components/ui'
 import { useData } from '../data/store'
 import { currentForBerth, nextForBerth, reservationTitle } from '../data/queries'
 import { getNextOpening } from '../lib/scheduling'
-import { fmtDay, fmtRange, todayISO } from '../lib/dates'
+import { fmtBerthLength, fmtDay, fmtRange, todayISO } from '../lib/dates'
 import { selToken, useSelection } from '../hooks/useSelection'
 
 export function BerthsPage() {
@@ -43,7 +43,7 @@ export function BerthsPage() {
                   >
                     <td className="font-medium text-ink">{b.name}</td>
                     <td className="whitespace-nowrap font-mono text-[12px] text-slate">
-                      {b.maxLengthFt} ft
+                      {fmtBerthLength(b.maxLengthFt)}
                     </td>
                     <td>
                       {current ? (

@@ -3,13 +3,25 @@ import { Search } from 'lucide-react'
 import { PageHeader } from '../components/shell/PageHeader'
 import { Chip, EmptyNote, Segmented, SortableTh } from '../components/ui'
 import { useData } from '../data/store'
-import { berthById, reservationDays, reservationTitle } from '../data/queries'
+import {
+  berthById,
+  isAmbiguousOccupancy,
+  reservationDays,
+  reservationTitle,
+} from '../data/queries'
 import { fmtRange, todayISO } from '../lib/dates'
 import { selToken, useSelection } from '../hooks/useSelection'
 
 type Tab = 'upcoming' | 'past' | 'cancelled'
 type TypeFilter = 'all' | 'vessel' | 'event'
 type SortKey = 'date' | 'name' | 'berth'
+
+/**
+ * The imported history runs to a couple of thousand records, so the table
+ * renders a page at a time rather than every row at once. Filters and sorting
+ * always apply to the whole set, not just the visible page.
+ */
+const PAGE = 200
 
 export function ReservationsPage() {
   const { reservations, berths } = useData()
@@ -22,11 +34,14 @@ export function ReservationsPage() {
   const [asc, setAsc] = useState(true)
   const today = todayISO()
 
+  const [limit, setLimit] = useState(PAGE)
+
   // Tab changes restore the operationally sensible default ordering.
   const setTab = (t: Tab) => {
     setTabState(t)
     setSortKey('date')
     setAsc(t !== 'past')
+    setLimit(PAGE)
   }
 
   const toggleSort = (key: SortKey) => {
@@ -134,7 +149,9 @@ export function ReservationsPage() {
             ))}
           </select>
           <span className="ml-auto font-mono text-[11px] text-slate">
-            {rows.length} record{rows.length === 1 ? '' : 's'}
+            {rows.length > limit
+              ? `showing ${limit} of ${rows.length.toLocaleString()}`
+              : `${rows.length.toLocaleString()} record${rows.length === 1 ? '' : 's'}`}
           </span>
         </div>
 
@@ -156,7 +173,7 @@ export function ReservationsPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => {
+                {rows.slice(0, limit).map((r) => {
                   const d = reservationDays(r)
                   return (
                     <tr
@@ -166,9 +183,13 @@ export function ReservationsPage() {
                     >
                       <td className="font-medium text-ink">{reservationTitle(r)}</td>
                       <td>
-                        <Chip tone={r.type === 'vessel' ? 'vessel' : 'event'}>
-                          {r.type === 'vessel' ? 'Vessel' : 'Event'}
-                        </Chip>
+                        {isAmbiguousOccupancy(r) ? (
+                          <Chip tone="slate">Unidentified</Chip>
+                        ) : (
+                          <Chip tone={r.type === 'vessel' ? 'vessel' : 'event'}>
+                            {r.type === 'vessel' ? 'Vessel' : 'Event'}
+                          </Chip>
+                        )}
                       </td>
                       <td className="text-slate">{berthById(r.berthId)?.name ?? '—'}</td>
                       <td className="whitespace-nowrap font-mono text-[12px] text-slate">
@@ -191,6 +212,16 @@ export function ReservationsPage() {
                 })}
               </tbody>
             </table>
+          )}
+          {rows.length > limit && (
+            <div className="border-t border-line px-3 py-2.5 text-center">
+              <button
+                onClick={() => setLimit((n) => n + PAGE)}
+                className="font-mono text-[11px] uppercase tracking-[0.06em] text-slate hover:text-accent"
+              >
+                Show {Math.min(PAGE, rows.length - limit)} more
+              </button>
+            </div>
           )}
         </div>
       </div>

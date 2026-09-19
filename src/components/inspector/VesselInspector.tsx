@@ -2,7 +2,7 @@ import { berthById, reservationDays, vesselById, vesselHistory } from '../../dat
 import { useData } from '../../data/store'
 import type { Reservation } from '../../data/types'
 import { getVesselCompatibleBerths } from '../../lib/scheduling'
-import { fmtRange, todayISO } from '../../lib/dates'
+import { fmtBerthLength, fmtRange, todayISO } from '../../lib/dates'
 import { selToken, useSelection } from '../../hooks/useSelection'
 import { EmptyNote, KV, SectionLabel } from '../ui'
 import { InspectorMissing } from './InspectorHost'
@@ -58,15 +58,19 @@ export function VesselInspector({ id }: { id: string }) {
                       {berth.name}
                     </span>
                     <span className="block font-mono text-[10.5px] text-slate">
-                      {berth.maxLengthFt} ft
+                      {fmtBerthLength(berth.maxLengthFt)}
                     </span>
                   </span>
                   <span
-                    className={`shrink-0 font-mono text-[11px] ${fits ? 'text-teal' : 'text-brick'}`}
+                    className={`shrink-0 font-mono text-[11px] ${
+                      clearanceFt == null ? 'text-slate' : fits ? 'text-teal' : 'text-brick'
+                    }`}
                   >
-                    {fits
-                      ? `+${clearanceFt} ft`
-                      : `Too short · −${Math.abs(clearanceFt)} ft`}
+                    {clearanceFt == null
+                      ? 'Fit unknown'
+                      : fits
+                        ? `+${clearanceFt} ft`
+                        : `Too short · −${Math.abs(clearanceFt)} ft`}
                   </span>
                 </button>
               ))}

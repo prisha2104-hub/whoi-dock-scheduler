@@ -27,6 +27,15 @@ export function reservationTitle(r: Reservation): string {
   return r.eventName ?? 'Untitled event'
 }
 
+/**
+ * True for imported blocks that the workbook shows as occupied without
+ * recording what occupied them. They block the berth like any reservation but
+ * must never read as a known vessel or a real named event.
+ */
+export function isAmbiguousOccupancy(r: Reservation): boolean {
+  return r.source?.ambiguous === true
+}
+
 export function activeReservations(): Reservation[] {
   return getData().reservations.filter((r) => r.status === 'active')
 }

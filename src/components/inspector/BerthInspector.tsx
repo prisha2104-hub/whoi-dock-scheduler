@@ -60,7 +60,11 @@ export function BerthInspector({ id }: { id: string }) {
       <div className="border-b border-line px-5 pb-4 pt-4">
         <div className="microlabel">Berth</div>
         <h2 className="mt-1.5 pr-8 text-[15px] font-semibold leading-tight text-ink">{berth.name}</h2>
-        <div className="mt-1 font-mono text-[11.5px] text-slate">{berth.maxLengthFt} ft maximum vessel length</div>
+        <div className="mt-1 font-mono text-[11.5px] text-slate">
+          {berth.maxLengthFt == null
+            ? 'No rated maximum vessel length'
+            : `${berth.maxLengthFt} ft maximum vessel length`}
+        </div>
       </div>
 
       <div className="flex flex-col gap-4 px-5 py-4">

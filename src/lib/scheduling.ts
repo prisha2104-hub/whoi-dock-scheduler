@@ -58,7 +58,16 @@ export function overlaps(aStart: string, aEnd: string, bStart: string, bEnd: str
   return aStart <= bEnd && bStart <= aEnd
 }
 
-export function vesselFitsBerth(lengthFt: number, berth: Berth): { fits: boolean; clearanceFt: number } {
+/**
+ * Length fit. A berth with no rated length (the workbook's "North Finger
+ * Piers" and "Small craft slips" rows state none) cannot be assessed, so fit
+ * is reported as unknown rather than assumed to pass or fail.
+ */
+export function vesselFitsBerth(
+  lengthFt: number,
+  berth: Berth,
+): { fits: boolean; clearanceFt: number | null } {
+  if (berth.maxLengthFt == null) return { fits: true, clearanceFt: null }
   const clearanceFt = berth.maxLengthFt - lengthFt
   return { fits: clearanceFt >= 0, clearanceFt }
 }
@@ -141,7 +150,7 @@ export function evaluateBerth(
   opts: WindowSearchOptions = {},
 ): BerthEvaluation {
   const fit =
-    request.kind === 'vessel' && request.lengthFt != null
+    request.kind === 'vessel' && request.lengthFt != null && berth.maxLengthFt != null
       ? vesselFitsBerth(request.lengthFt, berth)
       : null
 
@@ -200,8 +209,9 @@ export function evaluateRequest(
       // least deficit first
       return (b.clearanceFt ?? 0) - (a.clearanceFt ?? 0)
     }
-    // smallest adequate berth first (stable sort keeps seed order on ties)
-    return a.berth.maxLengthFt - b.berth.maxLengthFt
+    // smallest adequate berth first; unrated berths last (stable on ties)
+    return (a.berth.maxLengthFt ?? Number.POSITIVE_INFINITY)
+      - (b.berth.maxLengthFt ?? Number.POSITIVE_INFINITY)
   })
 
   const counts = {
@@ -276,7 +286,8 @@ export function getNextOpening(
 export interface BerthCompatibility {
   berth: Berth
   fits: boolean
-  clearanceFt: number
+  /** Null when the berth states no rated length, so fit is unknown. */
+  clearanceFt: number | null
 }
 
 /**
@@ -290,7 +301,10 @@ export function getVesselCompatibleBerths(lengthFt: number, berths: Berth[]): Be
     .map((b) => ({ berth: b, ...vesselFitsBerth(lengthFt, b) }))
   rows.sort((a, b) => {
     if (a.fits !== b.fits) return a.fits ? -1 : 1
-    return a.fits ? a.berth.maxLengthFt - b.berth.maxLengthFt : b.clearanceFt - a.clearanceFt
+    // berths with no rated length sort last within their group
+    const ac = a.berth.maxLengthFt ?? Number.POSITIVE_INFINITY
+    const bc = b.berth.maxLengthFt ?? Number.POSITIVE_INFINITY
+    return a.fits ? ac - bc : (b.clearanceFt ?? 0) - (a.clearanceFt ?? 0)
   })
   return rows
 }
@@ -369,11 +383,12 @@ export function validateReservationInput(
 
   if (errors.length > 0) return errors
 
-  if (input.type === 'vessel' && vessel && vessel.lengthFt != null && berth) {
+  if (input.type === 'vessel' && vessel && vessel.lengthFt != null && berth?.maxLengthFt != null) {
     const { fits, clearanceFt } = vesselFitsBerth(vessel.lengthFt, berth)
     if (!fits)
       errors.push(
-        `${vessel.name} (${vessel.lengthFt} ft) exceeds ${berth.name} (${berth.maxLengthFt} ft) by ${Math.abs(clearanceFt)} ft.`,
+        `${vessel.name} (${vessel.lengthFt} ft) exceeds ${berth.name} ` +
+          `(${berth.maxLengthFt} ft) by ${Math.abs(clearanceFt ?? 0)} ft.`,
       )
   }
 

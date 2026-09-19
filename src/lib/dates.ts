@@ -128,3 +128,8 @@ export function fmtRange(a: string, b: string, opts?: { year?: boolean }): strin
 export function dateRange(startISO: string, n: number): string[] {
   return Array.from({ length: n }, (_, i) => addDays(startISO, i))
 }
+
+/** `410 ft` / `not stated` — one rendering for a berth's rated length. */
+export function fmtBerthLength(maxLengthFt: number | null): string {
+  return maxLengthFt == null ? 'not stated' : `${maxLengthFt} ft`
+}

@@ -6,8 +6,12 @@
 export interface Berth {
   id: string
   name: string
-  /** Rated maximum vessel length in feet. */
-  maxLengthFt: number
+  /**
+   * Rated maximum vessel length in feet, or `null` where the workbook states
+   * none (the "North Finger Piers" and "Small craft slips" rows carry no
+   * length). Fit cannot be asserted against a berth with no rated length.
+   */
+  maxLengthFt: number | null
   active: boolean
 }
 
@@ -42,4 +46,26 @@ export interface Reservation {
   endDate: string
   notes?: string
   status: ReservationStatus
+  /**
+   * Provenance for records imported from the workbook. Absent on reservations
+   * created in the application, which is what distinguishes the two — imported
+   * history is immutable and reloads deterministically, user bookings do not
+   * survive a reset.
+   */
+  source?: {
+    sheet: string
+    year: number
+    row: number
+    /** Worksheet cell range the block occupied, e.g. `F39:M39`. */
+    cells?: string
+    /** How the occupied range was reconstructed (merge, colour run, …). */
+    span: string
+    /**
+     * The workbook marks these berth-days as occupied but records no occupant.
+     * The record blocks the berth like any other, and is never presented as a
+     * known vessel or a real named event.
+     */
+    ambiguous?: boolean
+    ambiguityReason?: string
+  }
 }

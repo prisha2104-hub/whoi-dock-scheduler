@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "import:workbook": "python3 scripts/parse_workbook.py"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.5",

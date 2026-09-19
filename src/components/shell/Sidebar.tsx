@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import { useData } from '../../data/store'
+import { SOURCE_META } from '../../data/source'
 import { IS_MAC, useSearchPalette } from '../search/SearchPalette'
 import { fmtDayYear, todayISO } from '../../lib/dates'
 
@@ -67,8 +68,12 @@ export function Sidebar() {
             <span className="text-slate">{fmtDayYear(todayISO())}</span>
           </div>
           <div className="mt-1 flex justify-between gap-2">
-            <span>Data</span>
-            <span className="text-slate">Sep 2026 sample</span>
+            <span>Source</span>
+            <span className="text-slate">{SOURCE_META.yearRange}</span>
+          </div>
+          <div className="mt-1 flex justify-between gap-2">
+            <span>Records</span>
+            <span className="text-slate">{reservations.length.toLocaleString()}</span>
           </div>
         </div>
       </div>

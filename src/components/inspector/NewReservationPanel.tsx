@@ -14,7 +14,7 @@ import {
   requestFromDraft,
   type BerthEvaluation,
 } from '../../lib/scheduling'
-import { dayNum, fmtDay, fmtRange, spanDays, todayISO } from '../../lib/dates'
+import { dayNum, fmtBerthLength, fmtDay, fmtRange, spanDays, todayISO } from '../../lib/dates'
 import { selToken, useSelection } from '../../hooks/useSelection'
 import { Button, Segmented } from '../ui'
 
@@ -34,7 +34,8 @@ const STATUS_CLASS = {
 } as const
 
 function clearanceLabel(ft: number | null): string {
-  if (ft == null) return ''
+  // Null means the berth states no rated length, so fit cannot be asserted.
+  if (ft == null) return '—'
   return ft >= 0 ? `+${ft} ft` : `−${Math.abs(ft)} ft`
 }
 
@@ -346,7 +347,7 @@ export function NewReservationPanel() {
             <div className="microlabel">Selected berth</div>
             <div className="mt-1 text-[12.5px] font-medium text-ink">{selected.berth.name}</div>
             <div className="mt-0.5 font-mono text-[11px] text-slate">
-              {selected.berth.maxLengthFt} ft max
+              {fmtBerthLength(selected.berth.maxLengthFt)} max
               {selected.clearanceFt != null && ` · ${clearanceLabel(selected.clearanceFt)} clearance`}
             </div>
           </div>
@@ -449,7 +450,7 @@ function BerthResultRow({
 
           <span className="w-16 shrink-0 text-right font-mono text-[11.5px]">
             {isEvent ? (
-              <span className="text-slate">{res.berth.maxLengthFt} ft</span>
+              <span className="text-slate">{fmtBerthLength(res.berth.maxLengthFt)}</span>
             ) : (
               <span className={res.clearanceFt != null && res.clearanceFt < 0 ? 'text-brick' : 'text-slate'}>
                 {clearanceLabel(res.clearanceFt)}

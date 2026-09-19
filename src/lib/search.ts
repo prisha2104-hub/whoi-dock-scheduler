@@ -3,7 +3,7 @@ import type { Berth, Reservation, Vessel } from '../data/types'
 /**
  * Global search — pure functions over the live dataset. Simple, predictable
  * partial matching (no fuzzy scoring): case-insensitive substring on the
- * fields that identify a record, plus date queries ("Sep 24", "2026-09-24")
+ * fields that identify a record, plus date queries ("Sep 24", "2019-09-24")
  * that return reservations covering that day.
  *
  * Indexed fields:
@@ -34,7 +34,7 @@ const MONTHS = [
 ]
 
 /**
- * Parse "Sep 24", "september 24", "Sep 24 2026", "9/24" or "2026-09-24".
+ * Parse "Sep 24", "september 24", "Sep 24 2019", "9/24" or "2019-09-24".
  * Returns an ISO date (defaulting to `defaultYear`) or null. The whole query
  * must be the date — fragments inside longer text are not treated as dates.
  */

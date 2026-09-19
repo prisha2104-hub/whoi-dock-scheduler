@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import { useData } from '../../data/store'
 import { searchEntities } from '../../lib/search'
-import { fmtDay, fmtRange, todayISO } from '../../lib/dates'
+import { fmtBerthLength, fmtDay, fmtRange, todayISO } from '../../lib/dates'
 import { reservationTitle } from '../../data/queries'
 import { selToken } from '../../hooks/useSelection'
 
@@ -92,7 +92,7 @@ function Palette({ onClose }: { onClose: () => void }) {
         key: `b-${b.id}`,
         group: 'Berths',
         primary: b.name,
-        right: `${b.maxLengthFt} ft`,
+        right: fmtBerthLength(b.maxLengthFt),
         go: () => navigate(`/berths?sel=${selToken.berth(b.id)}`),
       })
     }

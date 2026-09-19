@@ -380,6 +380,27 @@ input[type='date'].field {
   border-color: #c9b170;
   border-left-color: var(--color-event-cap);
 }
+/* Occupancy the workbook records without naming an occupant: neutral, hatched
+   and dashed so it reads as "something was here" rather than a named event. */
+.tl-bar.is-unknown {
+  background-color: var(--color-panel);
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(90, 100, 114, 0) 0px,
+    rgba(90, 100, 114, 0) 4px,
+    rgba(90, 100, 114, 0.14) 4px,
+    rgba(90, 100, 114, 0.14) 8px
+  );
+  border: 1px dashed var(--color-line-strong);
+  border-left: 3px solid var(--color-faint);
+  color: var(--color-slate);
+}
+.tl-bar.is-unknown:hover {
+  background-color: #efeee7;
+  border-color: var(--color-faint);
+  border-left-color: var(--color-slate);
+}
+
 .tl-bar[data-selected='true'] {
   box-shadow: 0 0 0 2px var(--color-accent);
   z-index: 3;
