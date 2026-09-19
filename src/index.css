@@ -1,0 +1,420 @@
+@import 'tailwindcss';
+
+/* ————————————————————————————————————————————————
+   Alongside — Oceanographic Field System tokens
+   Warm mineral canvas, ink text, desaturated marine
+   blue interaction color. Semantic teal/ochre/brick.
+   ———————————————————————————————————————————————— */
+@theme {
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-canvas: #f2f1ec;
+  --color-surface: #fbfaf6;
+  --color-panel: #f7f6f0;
+  --color-sidebar: #edebe3;
+  --color-line: #e2dfd3;
+  --color-line-strong: #cdc9ba;
+
+  --color-ink: #1f2a38;
+  --color-slate: #5a6472;
+  --color-faint: #8d95a0;
+
+  --color-accent: #2f5a7c;
+  --color-accent-deep: #254a68;
+  --color-accent-wash: #e6ecf1;
+
+  --color-teal: #2f7169;
+  --color-ochre: #8f6e1f;
+  --color-brick: #a34a3e;
+
+  --color-vessel-bg: #dae4ed;
+  --color-vessel-line: #b2c5d6;
+  --color-vessel-text: #1f3e59;
+
+  --color-event-bg: #f0e6c8;
+  --color-event-line: #d8c28c;
+  --color-event-text: #5d4a17;
+  --color-event-cap: #a9852e;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-canvas text-ink font-sans;
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Quiet, thin scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+    border-radius: 4px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+  }
+}
+
+/* Component classes live in the components layer so Tailwind utilities
+   (utilities layer, higher priority) can override them where intended —
+   e.g. `.field w-64 pl-7`, `.microlabel text-brick`, `th.text-right`. */
+@layer components {
+/* ——— shared micro-typography ——— */
+.microlabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-slate);
+}
+
+/* ——— data tables ——— */
+.dt {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.dt thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-line-strong);
+  padding: 7px 12px;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-slate);
+  white-space: nowrap;
+}
+.dt tbody td {
+  border-bottom: 1px solid var(--color-line);
+  padding: 9px 12px;
+  vertical-align: middle;
+}
+.dt tbody tr {
+  cursor: pointer;
+}
+.dt tbody tr:hover td {
+  background: #f1efe7;
+}
+.dt tbody tr[data-selected='true'] td {
+  background: var(--color-accent-wash);
+}
+.dt tbody tr[data-selected='true'] td:first-child {
+  box-shadow: inset 2px 0 0 var(--color-accent);
+}
+
+/* ——— keyboard hint ——— */
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--color-slate);
+  background: var(--color-panel);
+  border: 1px solid var(--color-line-strong);
+  border-radius: 3px;
+  padding: 3px 4px;
+  white-space: nowrap;
+}
+
+/* ——— inputs ——— */
+.field {
+  height: 32px;
+  width: 100%;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-surface);
+  border-radius: 5px;
+  padding: 0 10px;
+  font-size: 12.5px;
+  color: var(--color-ink);
+}
+.field::placeholder {
+  color: var(--color-faint);
+}
+.field:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+input[type='date'].field {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* ————————————————————————————————————————————————
+   Timeline
+   ———————————————————————————————————————————————— */
+.tl-scroll {
+  height: 100%;
+  overflow: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-strong);
+}
+
+.tl-hrow {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-line-strong);
+}
+.tl-corner {
+  position: sticky;
+  left: 0;
+  z-index: 30;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 12px 7px;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-line-strong);
+}
+.tl-dayhead {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1px;
+  padding-bottom: 6px;
+  border-right: 1px solid #edeae0;
+}
+.tl-dayhead .dow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--color-faint);
+}
+.tl-dayhead .num {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--color-slate);
+}
+.tl-dayhead.is-weekend {
+  background: #f1efe6;
+}
+.tl-dayhead.is-today {
+  box-shadow: inset 0 -2px 0 var(--color-accent);
+}
+.tl-dayhead.is-today .num,
+.tl-dayhead.is-today .dow {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.tl-row {
+  display: flex;
+  border-bottom: 1px solid var(--color-line);
+}
+.tl-row:last-child {
+  border-bottom: none;
+}
+
+.tl-labelcell {
+  position: sticky;
+  left: 0;
+  z-index: 15;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 12px;
+  text-align: left;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-line-strong);
+  cursor: pointer;
+}
+.tl-labelcell:hover {
+  background: #f1efe7;
+}
+.tl-labelcell[data-selected='true'] {
+  background: var(--color-accent-wash);
+  box-shadow: inset 2px 0 0 var(--color-accent);
+}
+.tl-labelcell .b-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ink);
+  line-height: 1.2;
+}
+.tl-labelcell .b-cap {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--color-slate);
+}
+
+.tl-lane {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+}
+.tl-cell {
+  flex-shrink: 0;
+  height: 100%;
+  border-right: 1px solid #edeae0;
+}
+.tl-cell.is-weekend {
+  background: #f1efe6;
+}
+.tl-cell.is-today {
+  background: #eaf0f4;
+}
+.tl-nowline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-accent);
+  opacity: 0.85;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* matching mode (New Reservation panel open with a computable request) */
+.tl-row.is-receded .tl-labelcell,
+.tl-row.is-receded .tl-lane {
+  opacity: 0.45;
+}
+.match-tag {
+  display: inline-block;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.match-tag.t-available {
+  color: var(--color-teal);
+}
+.match-tag.t-occupied {
+  color: var(--color-slate);
+}
+.match-tag.t-too-short {
+  color: var(--color-brick);
+}
+.tl-match-span {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  z-index: 1;
+  border: 1.5px dashed var(--color-accent);
+  border-radius: 3px;
+  background: rgba(47, 90, 124, 0.05);
+  pointer-events: none;
+}
+.tl-match-span.is-selected {
+  border-style: solid;
+  background: rgba(47, 90, 124, 0.09);
+}
+
+/* reservation bars */
+.tl-bar {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  padding: 0 8px;
+  text-align: left;
+  overflow: hidden;
+  border: 1px solid;
+  border-left-width: 3px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.tl-bar.is-vessel {
+  background: var(--color-vessel-bg);
+  border-color: var(--color-vessel-line);
+  border-left-color: var(--color-accent);
+  color: var(--color-vessel-text);
+}
+.tl-bar.is-vessel:hover {
+  background: #cfdce8;
+  border-color: #93aec4;
+  border-left-color: var(--color-accent);
+}
+.tl-bar.is-event {
+  background-color: var(--color-event-bg);
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(122, 94, 28, 0) 0px,
+    rgba(122, 94, 28, 0) 5px,
+    rgba(122, 94, 28, 0.07) 5px,
+    rgba(122, 94, 28, 0.07) 10px
+  );
+  border-color: var(--color-event-line);
+  border-left-color: var(--color-event-cap);
+  color: var(--color-event-text);
+}
+.tl-bar.is-event:hover {
+  background-color: #eadfba;
+  border-color: #c9b170;
+  border-left-color: var(--color-event-cap);
+}
+.tl-bar[data-selected='true'] {
+  box-shadow: 0 0 0 2px var(--color-accent);
+  z-index: 3;
+}
+.tl-bar .bar-name {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tl-bar .bar-meta {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  opacity: 0.75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tl-bar .bar-clip {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.tl-bar .bar-clip.l {
+  left: 2px;
+}
+.tl-bar .bar-clip.r {
+  right: 2px;
+}
+}
